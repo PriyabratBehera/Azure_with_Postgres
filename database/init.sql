@@ -19,5 +19,6 @@ VALUES
 ('Rahul', 'rahul@example.com', 'Development'),
 ('Amit', 'amit@example.com', 'DevOps')
 ('Amit11', 'amit@example.com11', 'DevOps11')
+('Amit11', 'amit@example.com11', 'DevOps1122')
 
 ON CONFLICT (email) DO NOTHING;
