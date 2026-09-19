@@ -1,0 +1,56 @@
+name: Build and Deploy Employee Management App
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  ACR_NAME: employeemanagementregistry
+  IMAGE_NAME: employee-management
+  APP_NAME: employeemanagementwebapp
+  RESOURCE_GROUP: employee-management-resourcegroup
+
+jobs:
+  build-and-deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to ACR
+        run: |
+          az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --platform linux/amd64 \
+            -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            .
+
+      - name: Push Docker image to ACR
+        run: |
+          docker push \
+            ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Update App Service container
+        run: |
+          az webapp config container set \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME }} \
+            --container-image-name ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Restart App Service
+        run: |
+          az webapp restart \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME }}
