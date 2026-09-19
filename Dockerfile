@@ -10,6 +10,8 @@ COPY backend ./backend
 
 COPY frontend ./frontend
 
+COPY . .
+
 EXPOSE 5000
 
 CMD ["node", "backend/server.js"]
